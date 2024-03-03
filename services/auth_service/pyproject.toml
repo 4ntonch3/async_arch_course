@@ -1,0 +1,110 @@
+[tool.poetry]
+name = "auth-service"
+version = "1.0.0"
+description = ""
+authors = []
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+authlib = "^1.3.0"
+uvicorn = "^0.27.1"
+sqlalchemy = "^2.0.27"
+fastapi = "^0.110.0"
+pyjwt = "^2.8.0"
+faststream = {extras = ["kafka"], version = "^0.4.5"}
+asyncpg = "^0.29.0"
+alembic = "^1.13.1"
+
+
+[tool.poetry.group.linting.dependencies]
+mypy = "1.7.*"
+ruff = "0.1.*"
+
+[tool.mypy]
+python_version = "3.11"
+
+
+[tool.ruff]
+allowed-confusables = []
+builtins = []
+cache-dir = ".ruff_cache"
+dummy-variable-rgx = "^_$"
+extend-exclude = []
+extend-fixable = []
+extend-include = []
+extend-per-file-ignores = {}
+extend-safe-fixes = []
+extend-select = []
+extend-unsafe-fixes = []
+explicit-preview-rules = false
+external = []
+fix = false
+fix-only = false
+fixable = ["ALL"]
+force-exclude = false
+ignore = ["ANN101", "ANN102", "E501", "S104", "RET504"]
+ignore-init-module-imports = true
+include = ["*.py", "*.pyi", "**/pyproject.toml"]
+indent-width = 4
+line-length = 109
+logger-objects = []
+namespace-packages = []
+output-format = "text"
+preview = false
+respect-gitignore = false
+select = [
+    "F",        # pyflakes
+    "E",        # pycodestyle errors
+    "W",        # pycodestyle warnings
+    "I",        # isort
+    "N",        # pep8-naming
+    "ANN",      # flake8-annotations
+    "ASYNC",    # flake8-async
+    "S",        # flake8-bandit
+    "B",        # flake8-bugbear
+    "A",        # flake8-builtins
+    "C4",       # flake8-comprehensions
+    "EM",       # flake8-errmsg
+    "INP",      # flake8-no-pep420
+    "PIE",      # flake8-pie
+    "T20",      # flake8-print
+    "PT",       # flake8-pytest-style
+    "RET",      # flake8-return
+    "SIM",      # flake8-simplify
+    "ARG",      # flake8-unused-arguments
+    "PTH",      # flake8-use-pathlib
+    "ERA",      # eradicate
+    "RUF",      # Ruff-specific rules
+]
+show-fixes = false
+show-source = false
+src = ["src"]
+target-version = "py311"
+task-tags = ["TODO"]
+typing-modules = []
+unfixable = []
+
+[tool.ruff.format]
+docstring-code-format = false
+docstring-code-line-length = "dynamic"
+exclude = []
+indent-style = "space"
+line-ending = "auto"
+preview = false
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint.isort]
+# Use a single line after each import block.
+lines-after-imports = 2
+lines-between-types = 0
+
+[tool.ruff.per-file-ignores]
+# Ignore `F401` (imported but unused) in all `__init__.py` files
+"__init__.py" = ["F401"]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
