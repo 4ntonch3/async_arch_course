@@ -18,4 +18,4 @@ class Task(BaseModel):
 
     @classmethod
     def from_domain(cls, task: entities.Task) -> Self:
-        return cls(id=task.id_, description=task.description, status=TaskStatus(str(task.status)))
+        return cls(id=task.public_id, description=task.description, status=TaskStatus(str(task.status)))

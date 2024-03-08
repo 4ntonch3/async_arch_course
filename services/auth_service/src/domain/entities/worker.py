@@ -13,7 +13,7 @@ class WorkerRole(StrEnum):
 
 @dataclass
 class Worker:
-    id_: str
+    public_id: str
     username: str
     secret: str
     email: str
@@ -22,7 +22,7 @@ class Worker:
     @classmethod
     def new(cls, username: str, secret: str, email: str, role: str) -> Self:
         return cls(
-            id_=str(uuid.uuid4()),
+            public_id=str(uuid.uuid4()),
             username=username,
             secret=secret,
             email=email,

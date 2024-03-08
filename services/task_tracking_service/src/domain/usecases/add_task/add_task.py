@@ -21,4 +21,4 @@ class AddTaskUsecase:
 
         await self._message_broker.produce_task_added(new_task)
 
-        return new_task.id_
+        return new_task.public_id

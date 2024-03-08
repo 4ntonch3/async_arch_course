@@ -17,7 +17,7 @@ tasks_table = sa.Table(
     metadata_obj,
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("public_id", sa.String(length=64), unique=True, nullable=False),
-    sa.Column("worker_id", sa.String(length=64), sa.ForeignKey("workers.public_id"), nullable=False),
+    sa.Column("worker_public_id", sa.String(length=64), sa.ForeignKey("workers.public_id"), nullable=False),
     sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
     sa.Column("description", sa.String(length=1024), nullable=False),
@@ -27,7 +27,7 @@ tasks_table = sa.Table(
 
 def row_to_dto(row: tuple) -> entities.Task:
     return entities.Task(
-        id_=row[1],
+        public_id=row[1],
         assignee=entities.Worker(row[2], entities.WorkerRole(str(row[9]))),
         description=row[5],
         status=entities.TaskStatus(str(row[6])),

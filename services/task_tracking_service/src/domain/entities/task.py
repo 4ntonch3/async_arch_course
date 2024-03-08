@@ -13,7 +13,7 @@ class TaskStatus(StrEnum):
 
 @dataclass
 class Task:
-    id_: str
+    public_id: str
     assignee: Worker
     description: str
     status: TaskStatus
@@ -21,7 +21,7 @@ class Task:
     @classmethod
     def new(cls, description: str, assignee: Worker) -> Self:
         return cls(
-            id_=str(uuid.uuid4()),
+            public_id=str(uuid.uuid4()),
             assignee=assignee,
             description=description,
             status=TaskStatus.OPENED,

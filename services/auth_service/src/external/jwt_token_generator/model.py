@@ -17,7 +17,7 @@ class WorkerPayload:
     @classmethod
     def from_domain(cls, worker: entities.Worker, lifetime_seconds: int) -> Self:
         return cls(
-            public_id=worker.id_,
+            public_id=worker.public_id,
             username=worker.username,
             secret=worker.secret,
             email=worker.email,
@@ -30,7 +30,7 @@ class WorkerPayload:
 
     def to_domain(self) -> entities.Worker:
         return entities.Worker(
-            id_=self.public_id,
+            public_id=self.public_id,
             username=self.username,
             secret=self.secret,
             email=self.email,

@@ -92,7 +92,6 @@ async def reassign_tasks(worker: Annotated[auth_service_dto.Worker | None, Depen
     if worker is None:
         return schema.response.UnauthorizedErrorResponse()
 
-    # TODO: add manager
     if worker.role not in (entities.WorkerRole.ADMINISTATOR, entities.WorkerRole.MANAGER):
         return schema.response.PermissionErrorResponse()
 

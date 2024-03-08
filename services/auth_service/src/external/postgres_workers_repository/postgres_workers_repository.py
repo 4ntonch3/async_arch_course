@@ -22,7 +22,7 @@ class PostgresWorkersRepository(WorkersRepository):
 
     async def add(self, worker: entities.Worker) -> None:
         insert_worker = workers_table.insert().values(
-            public_id=worker.id_,
+            public_id=worker.public_id,
             username=worker.username,
             secret=worker.secret,
             email=worker.email,

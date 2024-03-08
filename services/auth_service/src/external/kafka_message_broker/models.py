@@ -9,20 +9,25 @@ class Event(BaseModel):
     title: StrictStr
 
 
-class WorkerAddedEvent(Event):
-    EVENT_TITLE: ClassVar[StrictStr] = "worker_added"
+class WorkerCreatedEvent(Event):
+    class Payload(BaseModel):
+        worker_id: StrictStr
+        username: StrictStr
+        email: StrictStr
+        role: StrictStr
+
+    EVENT_TITLE: ClassVar[str] = "worker_created"
 
     title: StrictStr = EVENT_TITLE
-    id: StrictStr
-    username: StrictStr
-    email: StrictStr
-    role: StrictStr
+    payload: Payload
 
     @classmethod
     def from_domain(cls, worker: entities.Worker) -> Self:
         return cls(
-            id=worker.id_,
-            username=worker.username,
-            email=worker.email,
-            role=str(worker.role),
+            payload=cls.Payload(
+                worker_id=worker.public_id,
+                username=worker.username,
+                email=worker.email,
+                role=str(worker.role),
+            )
         )

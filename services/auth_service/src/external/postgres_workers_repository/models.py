@@ -30,7 +30,7 @@ workers_table = sa.Table(
 
 def row_to_domain(row: tuple) -> entities.Worker:
     return entities.Worker(
-        id_=row[1],
+        public_id=row[1],
         username=row[2],
         secret=row[3],
         email=row[4],

@@ -13,5 +13,5 @@ class MessageBroker(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def produce_task_reassigned(self, task: entities.Task) -> None:
+    async def produce_tasks_assigned(self, tasks: list[entities.Task]) -> None:
         pass

@@ -4,16 +4,17 @@ from external import broker
 from . import models
 
 
-_CUD_WORKERS_EVENT_TOPIC = "workers-stream"
+_CUD_WORKERS_EVENT_TOPIC = "worker-stream"
 
 
 @broker.subscriber(_CUD_WORKERS_EVENT_TOPIC)
-async def handle_new_worker(event: dict) -> None:
+async def handle_worker_created(event: dict) -> None:
     event_title = event.get("title")
 
-    if event_title != models.WorkerAddedEvent.EVENT_TITLE:
+    if event_title != models.WorkerCreatedEvent.EVENT_TITLE:
         return
 
-    worker_added_event = models.WorkerAddedEvent.model_validate(event)
+    worker_created_event = models.WorkerCreatedEvent.model_validate(event)
+    worker_data = worker_created_event.payload
 
-    await dependency.add_worker.execute(worker_added_event.id, worker_added_event.role)
+    await dependency.add_worker.execute(worker_data.worker_id, worker_data.role)

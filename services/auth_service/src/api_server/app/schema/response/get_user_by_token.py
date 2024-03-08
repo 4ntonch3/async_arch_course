@@ -18,7 +18,7 @@ class GetWorkerByTokenResponse(BaseModel):
     def from_domain(cls, worker: entities.Worker) -> Self:
         return cls(
             result=cls.GetWorkerByTokenResult(
-                public_id=worker.id_,
+                public_id=worker.public_id,
                 role=WorkerRole.from_domain(worker.role),
             )
         )

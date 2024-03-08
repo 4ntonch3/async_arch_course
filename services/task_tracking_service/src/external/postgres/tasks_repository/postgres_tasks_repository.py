@@ -28,8 +28,8 @@ class PostgresTasksRepository(TasksRepository):
         now = datetime.utcnow()
 
         insert_task = tasks_table.insert().values(
-            public_id=task.id_,
-            worker_id=task.assignee.id_,
+            public_id=task.public_id,
+            worker_public_id=task.assignee.id_,
             created_at=now,
             updated_at=now,
             description=task.description,
@@ -40,11 +40,11 @@ class PostgresTasksRepository(TasksRepository):
             await conn.execute(insert_task)
             await conn.commit()
 
-    async def get(self, task_id: str) -> entities.Task:
+    async def get(self, task_public_id: str) -> entities.Task:
         select_task = (
-            tasks_table.join(workers_table, tasks_table.c.worker_id == workers_table.c.public_id)
+            tasks_table.join(workers_table, tasks_table.c.worker_public_id == workers_table.c.public_id)
             .select()
-            .where(tasks_table.c.public_id == task_id)
+            .where(tasks_table.c.public_id == task_public_id)
         )
 
         async with self._engine.connect() as conn:
@@ -54,11 +54,11 @@ class PostgresTasksRepository(TasksRepository):
 
         return row_to_dto(task_row)
 
-    async def get_all_for_worker(self, worker_id: str) -> list[entities.Task]:
+    async def get_all_for_worker(self, worker_public_id: str) -> list[entities.Task]:
         select_tasks_for_worker = (
-            tasks_table.join(workers_table, tasks_table.c.worker_id == workers_table.c.public_id)
+            tasks_table.join(workers_table, tasks_table.c.worker_public_id == workers_table.c.public_id)
             .select()
-            .where(tasks_table.c.worker_id == worker_id)
+            .where(workers_table.c.public_id == worker_public_id)
         )
 
         async with self._engine.connect() as conn:
@@ -70,7 +70,7 @@ class PostgresTasksRepository(TasksRepository):
         # TODO: add check if not exist?
         update_task = (
             tasks_table.update()
-            .where(tasks_table.c.public_id == task.id_)
+            .where(tasks_table.c.public_id == task.public_id)
             .values(
                 updated_at=datetime.utcnow(),
                 description=task.description,
@@ -84,7 +84,7 @@ class PostgresTasksRepository(TasksRepository):
 
     async def stream_opened(self) -> AsyncIterator[entities.Task]:
         select_all = (
-            tasks_table.join(workers_table, tasks_table.c.worker_id == workers_table.c.public_id)
+            tasks_table.join(workers_table, tasks_table.c.worker_public_id == workers_table.c.public_id)
             .select()
             .where(tasks_table.c.status == entities.TaskStatus.OPENED)
         )

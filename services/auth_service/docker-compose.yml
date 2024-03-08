@@ -1,0 +1,22 @@
+version: '3'
+services:
+  postgresql:
+    image: postgres:16
+    restart: always
+    shm_size: 128mb
+    container_name: postgresql
+    environment:
+      PG_DATA: /var/lib/postgresql/data
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: example
+    ports:
+      - 5432:5432
+    volumes:
+      - ./volume:/var/lib/postgresql/data
+
+  postgresql-adminer:
+    image: adminer
+    restart: always
+    container_name: postgresql-adminer
+    ports:
+      - 8080:8080

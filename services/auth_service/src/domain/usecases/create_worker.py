@@ -14,4 +14,4 @@ class CreateWorkerUsecase:
 
         await self._workers_repository.add(worker)
 
-        await self._message_broker.produce_worker_added(worker)
+        await self._message_broker.produce_worker_created(worker)

@@ -22,16 +22,21 @@ class ReassignTasksUsecase:
 
         self._is_reassign_active = True
 
+        reassigned_tasks = []
+
         async for task in self._tasks_repository.stream_opened():
-            await self._reassign_task(task)
+            reassigned_task = await self._reassign_task(task)
+            reassigned_tasks.append(reassigned_task)
+
+        await self._message_broker.produce_tasks_assigned(reassigned_tasks)
 
         self._is_reassign_active = False
 
-    async def _reassign_task(self, task_to_reassign: entities.Task) -> None:
+    async def _reassign_task(self, task: entities.Task) -> entities.Task:
         random_worker = await self._workers_repository.get_random_with_developer_role()
 
-        task_to_reassign.reassign(new_assignee=random_worker)
+        task.reassign(new_assignee=random_worker)
 
-        await self._tasks_repository.update(task_to_reassign)
+        await self._tasks_repository.update(task)
 
-        await self._message_broker.produce_task_reassigned(task_to_reassign)
+        return task
