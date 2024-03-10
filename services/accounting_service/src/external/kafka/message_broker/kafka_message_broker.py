@@ -10,6 +10,7 @@ class KafkaMessageBroker(MessageBroker):
         self._transaction_business_events_topic = "transactions"
         self._payments_business_events_topic = "payment-lifecycle"
         self._task_cud_events_topic = "task-stream"
+        self._transaction_cud_events_topic = "transaction-stream"
 
     async def produce_task_costs_set(self, task: entities.Task) -> None:
         await broker.publish(
@@ -23,10 +24,20 @@ class KafkaMessageBroker(MessageBroker):
             topic=self._transaction_business_events_topic,
         )
 
+        await broker.publish_batch(
+            *[models.TransactionCreatedEvent.from_domain(transaction) for transaction in transactions],
+            topic=self._transaction_cud_events_topic,
+        )
+
     async def produce_payments_created(self, payments: list[entities.Payment]) -> None:
         await broker.publish_batch(
             *[models.PaymentCreatedEvent.from_domain(payment) for payment in payments],
             topic=self._payments_business_events_topic,
+        )
+
+        await broker.publish_batch(
+            *[models.TransactionCreatedEvent.from_domain(payment.transaction) for payment in payments],
+            topic=self._transaction_cud_events_topic,
         )
 
     async def produce_payment_processed(self, payment: entities.Payment) -> None:

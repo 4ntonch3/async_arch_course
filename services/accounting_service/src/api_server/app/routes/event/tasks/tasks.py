@@ -32,12 +32,14 @@ async def handle_be_task_event(events: list[dict]) -> None:
             case models.TaskAssignedEvent.EVENT_TITLE:
                 task_assigned_event = models.TaskAssignedEvent.model_validate(event)
                 task_data = task_assigned_event.payload
+                # TODO: add batch processing & events producing
                 await dependency.apply_withdraw_transaction.execute(
                     task_data.task_id, task_data.new_assignee.id
                 )
             case models.TaskClosedEvent.EVENT_TITLE:
                 task_closed_event = models.TaskClosedEvent.model_validate(event)
                 task_data = task_closed_event.payload
+                # TODO: add batch processing & events producing
                 await dependency.apply_enroll_transaction.execute(task_data.task_id, task_data.assignee.id)
             case _:
                 continue

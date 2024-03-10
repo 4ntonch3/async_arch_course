@@ -101,6 +101,36 @@ class TransactionAppliedEvent(Event):
         )
 
 
+class TransactionCreatedEvent(Event):
+    class Payload(BaseModel):
+        public_id: StrictStr
+        worker_public_id: StrictStr
+        type: StrictStr
+        credit: Decimal
+        debit: Decimal
+        description: StrictStr
+        created_at: datetime
+
+    EVENT_TITLE: ClassVar[str] = "transaction_created"
+
+    title: StrictStr = EVENT_TITLE
+    payload: Payload
+
+    @classmethod
+    def from_domain(cls, transaction: entities.Transaction) -> Self:
+        return cls(
+            payload=cls.Payload(
+                public_id=transaction.public_id,
+                worker_public_id=transaction.worker.public_id,
+                type=str(transaction.type),
+                credit=transaction.credit,
+                debit=transaction.debit,
+                description=transaction.description,
+                created_at=transaction.created_at,
+            )
+        )
+
+
 class PaymentProcessedEvent(Event):
     class Payload(BaseModel):
         public_id: StrictStr
