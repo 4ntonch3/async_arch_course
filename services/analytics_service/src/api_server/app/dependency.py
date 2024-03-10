@@ -1,0 +1,12 @@
+from domain import interfaces, usecases
+from external import AuthServiceClient
+
+
+auth_service_client: AuthServiceClient
+tasks_repository: interfaces.TasksRepository
+transactions_repository: interfaces.TransactionsRepository
+workers_repository: interfaces.WorkersRepository
+
+get_most_expensive_task: usecases.GetMostExpensiveTaskUsecase
+get_workers_with_negative_balance: usecases.GetWorkersWithNegativeBalanceUsecase
+get_todays_manager_profit: usecases.GetTodaysManagerProfitUsecase
