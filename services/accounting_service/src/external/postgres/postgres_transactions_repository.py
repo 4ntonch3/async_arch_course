@@ -102,39 +102,11 @@ class PostgresTransactionsRepository(interfaces.TransactionsRepository):
 
             payment = None
             if worker.balance > 0:
-                new_transaction_model = await session.scalar(
-                    sqlalchemy.insert(models.TransactionORM).returning(models.TransactionORM),
-                    [
-                        {
-                            "public_id": str(uuid.uuid4()),
-                            "worker_id": int(worker.id),
-                            "billing_cycle_id": int(billing_cycle.id),
-                            "type": str(entities.TransactionType.PAYMENT),
-                            "credit": entities.Money(0).to_decimal(),
-                            "debit": worker.balance.to_decimal(),
-                            "description": description,
-                            "created_at": datetime.utcnow(),
-                        }
-                    ],
-                )
-                transaction = new_transaction_model.to_domain()
+                new_payment_model = await self._process_payment(session, worker, billing_cycle, description)
+                payment = new_payment_model.to_domain()
 
                 worker.balance = 0
                 worker_model.sync_with_domain(worker)
-
-                new_payment_model = await session.scalar(
-                    sqlalchemy.insert(models.PaymentORM).returning(models.PaymentORM),
-                    [
-                        {
-                            "public_id": str(uuid.uuid4()),
-                            "status": str(entities.PaymentStatus.CREATED),
-                            "transaction_id": int(transaction.id),
-                            "billing_cycle_id": int(billing_cycle.id),
-                            "created_at": datetime.utcnow(),
-                        }
-                    ],
-                )
-                payment = new_payment_model.to_domain()
 
             billing_cycle.close()
             billing_cycle_model.sync_with_domain(billing_cycle)
@@ -195,3 +167,42 @@ class PostgresTransactionsRepository(interfaces.TransactionsRepository):
         )
 
         return select_open_billing_cycle_for_worker_result.scalars().first()
+
+    async def _process_payment(
+        self,
+        session: AsyncSession,
+        worker: entities.Worker,
+        billing_cycle: entities.BillingCycle,
+        description: str,
+    ) -> models.PaymentORM:
+        new_transaction_model = await session.scalar(
+            sqlalchemy.insert(models.TransactionORM).returning(models.TransactionORM),
+            [
+                {
+                    "public_id": str(uuid.uuid4()),
+                    "worker_id": int(worker.id),
+                    "billing_cycle_id": int(billing_cycle.id),
+                    "type": str(entities.TransactionType.PAYMENT),
+                    "credit": entities.Money(0).to_decimal(),
+                    "debit": worker.balance.to_decimal(),
+                    "description": description,
+                    "created_at": datetime.utcnow(),
+                }
+            ],
+        )
+        transaction = new_transaction_model.to_domain()
+
+        new_payment_model = await session.scalar(
+            sqlalchemy.insert(models.PaymentORM).returning(models.PaymentORM),
+            [
+                {
+                    "public_id": str(uuid.uuid4()),
+                    "status": str(entities.PaymentStatus.CREATED),
+                    "transaction_id": int(transaction.id),
+                    "billing_cycle_id": int(billing_cycle.id),
+                    "created_at": datetime.utcnow(),
+                }
+            ],
+        )
+
+        return new_payment_model
