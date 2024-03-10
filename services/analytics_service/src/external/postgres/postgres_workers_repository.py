@@ -34,7 +34,7 @@ class PostgresWorkersRepository(WorkersRepository):
             insert_worker_result = await conn.execute(insert_worker)
             new_worker_model = insert_worker_result.first()
 
-            new_worker = models.transaction.row_to_domain(new_worker_model)
+            new_worker = models.worker.row_to_domain(new_worker_model)
 
             await conn.commit()
 
@@ -49,6 +49,6 @@ class PostgresWorkersRepository(WorkersRepository):
             select_workers_with_negative_balance_result = await conn.execute(
                 select_workers_with_negative_balance
             )
-            workers_models = select_workers_with_negative_balance_result.first()
+            workers_models = select_workers_with_negative_balance_result.all()
 
             return [models.worker.row_to_domain(worker_model) for worker_model in workers_models]

@@ -19,7 +19,7 @@ table = sa.Table(
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("public_id", sa.String(length=64), unique=True, nullable=False),
     sa.Column("type", sa.Enum(TransactionType, name="type"), nullable=False),
-    sa.Column("value", sa.Numeric(precision=3, scale=12), nullable=False),
+    sa.Column("value", sa.Numeric(precision=8, scale=3), nullable=False),
     sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
 )
 
