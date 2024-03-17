@@ -1,1 +1,1 @@
-from . import tasks, workers
+from . import payments, tasks, workers

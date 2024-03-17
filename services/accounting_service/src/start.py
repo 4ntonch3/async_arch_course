@@ -1,13 +1,10 @@
 import sys
 
-from schema_registry import SchemaRegistry
-
 import environment as env
 from api_server import create_web_app, start_api_server
 from domain import usecases
 from external import (
     AuthServiceClient,
-    EventBuilder,
     KafkaMessageBroker,
     PostgresPaymentsRepository,
     PostgresTasksRepository,
@@ -21,9 +18,7 @@ from logger import LOGGER
 
 def main() -> int:
     try:
-        schema_registry = SchemaRegistry()
-        event_builder = EventBuilder(schema_registry)
-        message_broker = KafkaMessageBroker(event_builder)
+        message_broker = KafkaMessageBroker()
 
         transactions_repository = PostgresTransactionsRepository(
             env.DB_HOST, env.DB_PORT, env.DB_USER, env.DB_PASSWORD, env.DB_TITLE
@@ -43,18 +38,17 @@ def main() -> int:
 
         web_app = create_web_app(
             AuthServiceClient(env.AUTH_SERVICE_HOST, env.AUTH_SERVICE_PORT),
-            schema_registry,
             tasks_repository,
             workers_repository,
             message_broker,
-            usecases.ApplyDepositTransactionUsecase(
+            usecases.ApplyEnrollTransactionUsecase(
                 tasks_repository, transactions_repository, message_broker
             ),
-            usecases.ApplyWithdrawalTransactionUsecase(
+            usecases.ApplyWithdrawTransactionUsecase(
                 tasks_repository, transactions_repository, message_broker
             ),
             usecases.CloseBillingCyclesUsecase(transactions_repository, workers_repository, message_broker),
-            usecases.PayoutWorkerUsecase(payments_repository, message_broker, bank_client, email_client),
+            usecases.WorkerPayoutUsecase(payments_repository, message_broker, bank_client, email_client),
             usecases.GetWorkerBalanceUsecase(workers_repository),
             usecases.GetWorkerTransactionsUsecase(transactions_repository),
             usecases.GetManagersDailyProfitUsecase(transactions_repository),

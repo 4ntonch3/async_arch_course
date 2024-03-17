@@ -1,2 +1,2 @@
 from .common import broker
-from .message_broker import EventBuilder, KafkaMessageBroker
+from .message_broker import KafkaMessageBroker
