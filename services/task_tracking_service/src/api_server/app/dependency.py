@@ -1,11 +1,14 @@
-from domain import usecases
+from schema_registry import SchemaRegistry
+
+from domain import interfaces, usecases
 from external import AuthServiceClient
 
 
 auth_service_client: AuthServiceClient
+schema_registry: SchemaRegistry
+workers_repository: interfaces.WorkersRepository
 
 add_task: usecases.AddTaskUsecase
-add_worker: usecases.AddWorkerUsecase
-close_task: usecases.CloseTaskUsecase
-get_tasks_for_worker: usecases.GetTasksForWorkerUsecase
+complete_task: usecases.CompleteTaskUsecase
+get_worker_tasks: usecases.GetWorkerTasksUsecase
 reassign_tasks: usecases.ReassignTasksUsecase

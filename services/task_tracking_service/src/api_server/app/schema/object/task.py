@@ -7,8 +7,8 @@ from domain import entities
 
 
 class TaskStatus(StrEnum):
-    OPENED = "opened"
-    CLOSED = "closed"
+    OPEN = "open"
+    COMPLETED = "completed"
 
 
 class Task(BaseModel):
@@ -18,4 +18,4 @@ class Task(BaseModel):
 
     @classmethod
     def from_domain(cls, task: entities.Task) -> Self:
-        return cls(id=task.public_id, description=task.description, status=TaskStatus(str(task.status)))
+        return cls(id=task.external_id, description=task.description, status=TaskStatus(str(task.status)))

@@ -1,8 +1,13 @@
+from schema_registry import SchemaRegistry
+
 from domain import interfaces, usecases
 from external import AuthServiceClient
 
 
 auth_service_client: AuthServiceClient
+
+schema_registry: SchemaRegistry
+
 tasks_repository: interfaces.TasksRepository
 transactions_repository: interfaces.TransactionsRepository
 workers_repository: interfaces.WorkersRepository

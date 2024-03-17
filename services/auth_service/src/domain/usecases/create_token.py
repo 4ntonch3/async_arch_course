@@ -15,8 +15,10 @@ class CreateTokenUsecase:
         self._token_lifetime_seconds = token_lifetime_seconds
 
     async def execute(self, username: str, secret: str) -> str:
-        hashed_secret = hash_secret(secret)
+        worker = await self._workers_repository.get_by_username(username)
 
-        worker = await self._workers_repository.get(username, hashed_secret)
+        if worker.hashed_secret != hash_secret(secret):
+            msg_exc = "Invalid credentials."
+            raise RuntimeError(msg_exc)  # TODO
 
         return self._token_generator.encode(worker, self._token_lifetime_seconds)

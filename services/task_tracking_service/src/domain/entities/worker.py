@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Self
 
 
 class WorkerRole(StrEnum):
@@ -12,9 +11,6 @@ class WorkerRole(StrEnum):
 
 @dataclass
 class Worker:
-    id_: str
+    id: str
+    public_id: str
     role: WorkerRole
-
-    @classmethod
-    def new(cls, id_: str, role: str) -> Self:
-        return cls(id_=id_, role=WorkerRole(role))

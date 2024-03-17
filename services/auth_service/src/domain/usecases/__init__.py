@@ -1,3 +1,3 @@
 from .create_token import CreateTokenUsecase
-from .create_worker import CreateWorkerUsecase
 from .get_worker_by_token import GetWorkerByTokenUsecase
+from .register_worker import RegisterWorkerUsecase

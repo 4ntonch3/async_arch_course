@@ -15,6 +15,7 @@ aiohttp = "^3.9.3"
 asyncpg = "^0.29.0"
 alembic = "^1.13.1"
 aiokafka = "^0.10.0"
+schema-registry = {path = "../event_schema_registry"}
 
 
 [tool.poetry.group.linting.dependencies]

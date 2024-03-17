@@ -15,6 +15,7 @@ alembic = "^1.13.1"
 sqlalchemy = "^2.0.28"
 aiohttp = "^3.9.3"
 aiokafka = "^0.10.0"
+schema-registry = {path = "../event_schema_registry"}
 
 
 [tool.poetry.group.linting.dependencies]

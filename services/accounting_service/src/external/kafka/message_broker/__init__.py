@@ -1,1 +1,1 @@
-from .kafka_message_broker import KafkaMessageBroker
+from .kafka_message_broker import EventBuilder, KafkaMessageBroker

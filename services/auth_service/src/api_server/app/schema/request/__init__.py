@@ -1,3 +1,3 @@
 from .create_token import CreateTokenRequestBody
-from .create_worker import CreateWorkerRequestBody
-from .get_user_by_token import GetWorkerByTokenRequestBody
+from .get_worker_by_token import GetWorkerByTokenRequestBody
+from .register_worker import RegisterWorkerRequestBody

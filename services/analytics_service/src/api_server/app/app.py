@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from schema_registry import SchemaRegistry
 
 from domain import interfaces, usecases
 from external import AuthServiceClient
@@ -8,6 +9,7 @@ from . import dependency, routes
 
 def create_web_app(
     auth_service_client: AuthServiceClient,
+    schema_registry: SchemaRegistry,
     tasks_repository: interfaces.TasksRepository,
     transactions_repository: interfaces.TransactionsRepository,
     workers_repository: interfaces.WorkersRepository,
@@ -16,6 +18,8 @@ def create_web_app(
     get_todays_manager_profit: usecases.GetTodaysManagerProfitUsecase,
 ) -> FastAPI:
     dependency.auth_service_client = auth_service_client
+
+    dependency.schema_registry = schema_registry
 
     dependency.tasks_repository = tasks_repository
     dependency.transactions_repository = transactions_repository

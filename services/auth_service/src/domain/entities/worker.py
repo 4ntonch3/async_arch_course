@@ -1,7 +1,5 @@
-import uuid
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from enum import StrEnum
-from typing import Self
 
 
 class WorkerRole(StrEnum):
@@ -13,21 +11,8 @@ class WorkerRole(StrEnum):
 
 @dataclass
 class Worker:
+    id: str
     public_id: str
     username: str
-    secret: str
-    email: str
+    hashed_secret: str
     role: WorkerRole
-
-    @classmethod
-    def new(cls, username: str, secret: str, email: str, role: str) -> Self:
-        return cls(
-            public_id=str(uuid.uuid4()),
-            username=username,
-            secret=secret,
-            email=email,
-            role=WorkerRole(role),
-        )
-
-    def to_dict(self) -> dict:
-        return asdict(self)

@@ -1,6 +1,6 @@
-from domain import CreateTokenUsecase, CreateWorkerUsecase, GetWorkerByTokenUsecase
+from domain import CreateTokenUsecase, GetWorkerByTokenUsecase, RegisterWorkerUsecase
 
 
 create_token: CreateTokenUsecase
-create_worker: CreateWorkerUsecase
+register_worker: RegisterWorkerUsecase
 get_worker_by_token: GetWorkerByTokenUsecase

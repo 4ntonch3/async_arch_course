@@ -1,10 +1,12 @@
+import uuid
+
 import sqlalchemy
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from domain import entities
 from domain.interfaces import WorkersRepository
 
-from .models import row_to_domain, workers_table
+from . import models
 
 
 class PostgresWorkersRepository(WorkersRepository):
@@ -20,27 +22,26 @@ class PostgresWorkersRepository(WorkersRepository):
         )
         self._engine = create_async_engine(url)
 
-    async def add(self, worker: entities.Worker) -> None:
-        insert_worker = workers_table.insert().values(
-            public_id=worker.public_id,
-            username=worker.username,
-            secret=worker.secret,
-            email=worker.email,
-            role=worker.role,
-        )
-
+    async def add(self, username: str, secret_hash: str, role: entities.WorkerRole) -> entities.Worker:
         async with self._engine.connect() as conn:
-            await conn.execute(insert_worker)
+            insert_new_result = await conn.execute(
+                models.workers.build_query_to_insert_new(
+                    public_id=str(uuid.uuid4()), username=username, secret_hash=secret_hash, role=role
+                )
+            )
+
+            worker_model = insert_new_result.first()
+            worker = models.workers.build_domain_from_model(worker_model)
+
             await conn.commit()
 
-    async def get(self, username: str, secret: str) -> entities.Worker:
-        select_worker = workers_table.select().where(
-            workers_table.c.username == username,
-            workers_table.c.secret == secret,
-        )
+        return worker
 
+    async def get_by_username(self, username: str) -> entities.Worker:
         async with self._engine.connect() as conn:
-            result = await conn.execute(select_worker)
-            worker_row = result.first()
+            select_by_username_result = await conn.execute(
+                models.workers.build_query_to_select_by_username(username)
+            )
+            worker_model = select_by_username_result.first()
 
-        return row_to_domain(worker_row)
+            return models.workers.build_domain_from_model(worker_model)

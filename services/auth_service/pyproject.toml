@@ -15,6 +15,7 @@ pyjwt = "^2.8.0"
 faststream = {extras = ["kafka"], version = "^0.4.5"}
 asyncpg = "^0.29.0"
 alembic = "^1.13.1"
+schema-registry = {path = "../event_schema_registry"}
 
 
 [tool.poetry.group.linting.dependencies]

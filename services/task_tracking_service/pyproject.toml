@@ -14,6 +14,7 @@ asyncpg = "^0.29.0"
 alembic = "^1.13.1"
 faststream = {extras = ["kafka"], version = "^0.4.5"}
 aiohttp = "^3.9.3"
+schema-registry = {path = "../event_schema_registry"}
 
 [tool.poetry.group.linting.dependencies]
 mypy = "1.7.*"

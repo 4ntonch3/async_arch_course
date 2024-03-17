@@ -9,5 +9,5 @@ class TokenGenerator(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def decode(self, token: str) -> entities.Worker:
+    def decode_to_username(self, token: str) -> str:
         pass

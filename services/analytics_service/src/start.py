@@ -1,5 +1,7 @@
 import sys
 
+from schema_registry import SchemaRegistry
+
 import environment as env
 from api_server import create_web_app, start_api_server
 from domain import usecases
@@ -14,6 +16,8 @@ from logger import LOGGER
 
 def main() -> int:
     try:
+        schema_registry = SchemaRegistry()
+
         tasks_repository = PostgresTasksRepository(
             env.DB_HOST, env.DB_PORT, env.DB_USER, env.DB_PASSWORD, env.DB_TITLE
         )
@@ -25,6 +29,7 @@ def main() -> int:
         )
         web_app = create_web_app(
             AuthServiceClient(env.AUTH_SERVICE_HOST, env.AUTH_SERVICE_PORT),
+            schema_registry,
             tasks_repository,
             transactions_repository,
             workers_repository,

@@ -20,7 +20,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from external.postgres.common import metadata_obj
+from external.postgres.models.common import metadata_obj
 
 
 # this is the Alembic Config object, which provides

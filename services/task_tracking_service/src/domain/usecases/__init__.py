@@ -1,5 +1,4 @@
 from .add_task import AddTaskUsecase
-from .add_worker import AddWorkerUsecase
-from .close_task import CloseTaskUsecase
-from .get_tasks_for_worker import GetTasksForWorkerUsecase
+from .complete_task import CompleteTaskUsecase
+from .get_worker_tasks import GetWorkerTasksUsecase
 from .reassign_tasks import ReassignTasksUsecase

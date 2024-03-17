@@ -1,2 +1,2 @@
 from .add_task import AddTaskRequestBody
-from .close_task import CloseTaskRequestBody
+from .complete_task import CompleteTaskRequestBody

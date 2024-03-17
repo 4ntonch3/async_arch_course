@@ -1,2 +1,2 @@
-from .tasks_repository import PostgresTasksRepository
-from .workers_repository import PostgresWorkersRepository
+from .postgres_tasks_repository import PostgresTasksRepository
+from .postgres_workers_repository import PostgresWorkersRepository
