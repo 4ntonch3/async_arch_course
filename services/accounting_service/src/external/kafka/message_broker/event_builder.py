@@ -12,7 +12,7 @@ class EventBuilder:
     def __init__(self, schema_registry: SchemaRegistry) -> None:
         self._schema_registry = schema_registry
 
-    def build_enroll_transaction_applied_event(self, transaction: entities.Transaction) -> dict:
+    def build_deposit_transaction_applied_event(self, transaction: entities.Transaction) -> dict:
         if transaction.type is not entities.TransactionType.DEPOSIT:
             msg_exc = "Wrong type of transaction"
             raise RuntimeError(msg_exc)  # TODO
@@ -38,7 +38,7 @@ class EventBuilder:
 
         return event
 
-    def build_withdraw_transaction_applied_event(self, transaction: entities.Transaction) -> dict:
+    def build_withdrawal_transaction_applied_event(self, transaction: entities.Transaction) -> dict:
         if transaction.type is not entities.TransactionType.WITHDRAWAL:
             msg_exc = "Wrong type of transaction"
             raise RuntimeError(msg_exc)  # TODO

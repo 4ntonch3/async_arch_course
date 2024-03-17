@@ -21,25 +21,25 @@ class KafkaMessageBroker(MessageBroker):
         await broker.publish(task_cost_created_event, topic=self._task_cost_cud_events_topic)
 
     async def produce_deposit_transactions_applied(self, transactions: list[entities.Transaction]) -> None:
-        enroll_transaction_applied_events = [
-            self._event_builder.build_enroll_transaction_applied_event(transaction)
+        deposit_transaction_applied_events = [
+            self._event_builder.build_deposit_transaction_applied_event(transaction)
             for transaction in transactions
         ]
 
         await broker.publish_batch(
-            *enroll_transaction_applied_events, topic=self._deposit_transaction_business_events_topic
+            *deposit_transaction_applied_events, topic=self._deposit_transaction_business_events_topic
         )
 
     async def produce_withdrawal_transactions_applied(
         self, transactions: list[entities.Transaction]
     ) -> None:
-        withdraw_transaction_applied_events = [
-            self._event_builder.build_withdraw_transaction_applied_event(transaction)
+        withdrawal_transaction_applied_events = [
+            self._event_builder.build_withdrawal_transaction_applied_event(transaction)
             for transaction in transactions
         ]
 
         await broker.publish_batch(
-            *withdraw_transaction_applied_events, topic=self._withdrawal_transaction_business_events_topic
+            *withdrawal_transaction_applied_events, topic=self._withdrawal_transaction_business_events_topic
         )
 
     async def produce_payment_transactions_applied(self, transactions: list[entities.Transaction]) -> None:
