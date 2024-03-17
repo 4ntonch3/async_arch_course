@@ -15,7 +15,7 @@ class CloseBillingCyclesUsecase:
     async def execute(self) -> list[entities.Payment]:
         workers_to_close_billing_cycles = await self._workers_repository.get_all()
 
-        payments = []
+        payments: list[entities.Payment] = []
 
         description = "Payment at the end of a billing cycle."
         for worker in workers_to_close_billing_cycles:
@@ -23,4 +23,8 @@ class CloseBillingCyclesUsecase:
             if payment is not None:
                 payments.append(payment)
 
-        await self._message_broker.produce_payments_created(payments)
+        await self._message_broker.produce_payment_transactions_applied(
+            [payment.transaction for payment in payments]
+        )
+
+        return payments

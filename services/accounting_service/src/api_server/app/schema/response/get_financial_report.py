@@ -15,9 +15,9 @@ class TransactionType(StrEnum):
     @classmethod
     def from_domain(cls, type: entities.TransactionType) -> Self:
         match type:
-            case entities.TransactionType.ENROLL:
+            case entities.TransactionType.DEPOSIT:
                 return cls("income")
-            case entities.TransactionType.WITHDRAW:
+            case entities.TransactionType.WITHDRAWAL:
                 return cls("debit")
             case entities.TransactionType.PAYMENT:
                 return cls("payout")

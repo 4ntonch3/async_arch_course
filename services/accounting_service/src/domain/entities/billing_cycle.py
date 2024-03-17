@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 
 from .worker import Worker
@@ -20,4 +20,4 @@ class BillingCycle:
 
     def close(self) -> None:
         self.status = BillingCycleStatus.CLOSE
-        self.ended_at = datetime.utcnow()
+        self.ended_at = datetime.now(UTC)

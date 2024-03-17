@@ -24,7 +24,7 @@ table = sa.Table(
 )
 
 
-def row_to_domain(row: tuple) -> entities.Worker:
+def build_domain_from_model(row: tuple) -> entities.Worker:
     return entities.Worker(
         id=str(row[0]),
         public_id=row[1],

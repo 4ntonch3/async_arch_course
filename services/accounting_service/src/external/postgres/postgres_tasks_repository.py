@@ -1,4 +1,5 @@
-from datetime import datetime
+import uuid
+from datetime import UTC, datetime
 
 import sqlalchemy
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -24,14 +25,28 @@ class PostgresTasksRepository(interfaces.TasksRepository):
 
     async def add(self, public_id: str) -> entities.Task:
         async with self._session_factory() as session:
+            now = datetime.now(UTC)
+
+            new_task_cost_model = await session.scalar(
+                sqlalchemy.insert(models.TaskCostORM).returning(models.TaskCostORM),
+                [
+                    {
+                        "public_id": str(uuid.uuid4()),
+                        "assign_fee": entities.TaskCost.calculate_assign_fee().to_decimal(),
+                        "completion_award": entities.TaskCost.calculate_completion_award().to_decimal(),
+                        "created_at": now,
+                    }
+                ],
+            )
+            new_task_cost = new_task_cost_model.to_domain()
+
             new_task_model = await session.scalar(
                 sqlalchemy.insert(models.TaskORM).returning(models.TaskORM),
                 [
                     {
                         "public_id": public_id,
-                        "assign_fee": entities.Task.calculate_assign_fee().to_decimal(),
-                        "completion_award": entities.Task.calculate_completion_award().to_decimal(),
-                        "created_at": datetime.utcnow(),
+                        "task_cost_id": int(new_task_cost.id),
+                        "created_at": now,
                     }
                 ],
             )
@@ -51,7 +66,7 @@ class PostgresTasksRepository(interfaces.TasksRepository):
 
             task_model = select_by_public_id_result.scalars().first()
 
-        if task_model is None:
-            return None
+            if task_model is None:
+                return None
 
-        return task_model.to_domain()
+            return task_model.to_domain()

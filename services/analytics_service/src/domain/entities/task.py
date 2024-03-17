@@ -7,7 +7,15 @@ from .money import Money
 
 class TaskStatus(StrEnum):
     OPENED = "opened"
-    CLOSED = "closed"
+    COMPLETED = "completed"
+
+
+@dataclass
+class TaskCost:
+    id: str
+    public_id: str
+    assign_fee: Money
+    completion_award: Money
 
 
 @dataclass
@@ -15,6 +23,6 @@ class Task:
     id: str
     public_id: str
     status: TaskStatus
-    cost: Money | None
+    cost: TaskCost | None
     created_at: datetime
     closed_at: datetime | None

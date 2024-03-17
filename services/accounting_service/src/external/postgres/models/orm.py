@@ -1,6 +1,5 @@
 from datetime import datetime
 from decimal import Decimal
-from enum import StrEnum
 from typing import Optional
 
 import sqlalchemy as sa
@@ -14,13 +13,11 @@ from .common import Base
 class BillingCycleORM(Base):
     __tablename__ = "billing_cycles"
 
-    class Status(StrEnum):
-        OPEN = "open"
-        CLOSE = "close"
-
     id: Mapped[int] = mapped_column(primary_key=True)
     worker_id: Mapped[int] = mapped_column(sa.ForeignKey("workers.id"), nullable=False)
-    status: Mapped[Status] = mapped_column(sa.Enum(Status, name="billing_status"), nullable=False)
+    status: Mapped[entities.BillingCycleStatus] = mapped_column(
+        sa.Enum(entities.BillingCycleStatus, name="billing_status"), nullable=False
+    )
     started_at: Mapped[datetime] = mapped_column(sa.DateTime(timezone=True), nullable=False)
     ended_at: Mapped[Optional[datetime]] = mapped_column(sa.DateTime(timezone=True), nullable=True)
 
@@ -32,28 +29,24 @@ class BillingCycleORM(Base):
         return entities.BillingCycle(
             id=str(self.id),
             worker=self.worker.to_domain(),
-            status=entities.BillingCycleStatus(str(self.status)),
+            status=self.status,
             started_at=self.started_at,
             ended_at=self.ended_at,
         )
 
     def sync_with_domain(self, billing_cycle: entities.BillingCycle) -> None:
-        self.status = self.Status(str(billing_cycle.status))
+        self.status = billing_cycle.status
         self.ended_at = billing_cycle.ended_at
 
 
 class PaymentORM(Base):
     __tablename__ = "payments"
 
-    class Status(StrEnum):
-        CREATED = "created"
-        IN_PROGRESS = "in_progress"
-        FAILED = "failed"
-        PROCESSED = "processed"
-
     id: Mapped[int] = mapped_column(primary_key=True)
     public_id: Mapped[str] = mapped_column(sa.String(length=64), unique=True, nullable=False)
-    status: Mapped[Status] = mapped_column(sa.Enum(Status, name="payment_status"), nullable=False)
+    status: Mapped[entities.PaymentStatus] = mapped_column(
+        sa.Enum(entities.PaymentStatus, name="payment_status"), nullable=False
+    )
     transaction_id: Mapped[int] = mapped_column(sa.ForeignKey("transactions.id"), nullable=False)
     billing_cycle_id: Mapped[int] = mapped_column(sa.ForeignKey("billing_cycles.id"), nullable=False)
     created_at: Mapped[datetime] = mapped_column(sa.DateTime(timezone=True), nullable=False)
@@ -67,15 +60,15 @@ class PaymentORM(Base):
             public_id=self.public_id,
             billing_cycle=self.billing_cycle.to_domain(),
             transaction=self.transaction.to_domain(),
-            status=entities.PaymentStatus(str(self.status)),
+            status=self.status,
         )
 
     def sync_with_domain(self, payment: entities.Payment) -> None:
-        self.status = self.Status(str(payment.status))
+        self.status = payment.status
 
 
-class TaskORM(Base):
-    __tablename__ = "tasks"
+class TaskCostORM(Base):
+    __tablename__ = "tasks_costs"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     public_id: Mapped[str] = mapped_column(sa.String(length=64), unique=True, nullable=False)
@@ -83,8 +76,10 @@ class TaskORM(Base):
     completion_award: Mapped[Decimal] = mapped_column(sa.Numeric(precision=8, scale=3), nullable=False)
     created_at: Mapped[datetime] = mapped_column(sa.DateTime(timezone=True), nullable=False)
 
-    def to_domain(self) -> entities.Task:
-        return entities.Task(
+    task: Mapped["TaskORM"] = relationship(back_populates="task_cost")
+
+    def to_domain(self) -> entities.TaskCost:
+        return entities.TaskCost(
             id=str(self.id),
             public_id=self.public_id,
             assign_fee=entities.Money(self.assign_fee),
@@ -92,19 +87,34 @@ class TaskORM(Base):
         )
 
 
+class TaskORM(Base):
+    __tablename__ = "tasks"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    public_id: Mapped[str] = mapped_column(sa.String(length=64), unique=True, nullable=False)
+    task_cost_id: Mapped[int] = mapped_column(sa.ForeignKey("tasks_costs.id"), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(sa.DateTime(timezone=True), nullable=False)
+
+    task_cost: Mapped["TaskCostORM"] = relationship(back_populates="task", lazy="joined")
+
+    def to_domain(self) -> entities.Task:
+        return entities.Task(
+            id=str(self.id),
+            public_id=self.public_id,
+            cost=self.task_cost.to_domain(),
+        )
+
+
 class TransactionORM(Base):
     __tablename__ = "transactions"
-
-    class Type(StrEnum):
-        ENROLL = "enroll"
-        WITHDRAW = "withdraw"
-        PAYMENT = "payment"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     public_id: Mapped[str] = mapped_column(sa.String(length=64), unique=True, nullable=False)
     worker_id: Mapped[int] = mapped_column(sa.ForeignKey("workers.id"), nullable=False)
     billing_cycle_id: Mapped[int] = mapped_column(sa.ForeignKey("billing_cycles.id"), nullable=False)
-    type: Mapped[Type] = mapped_column(sa.Enum(Type, name="type"), nullable=False)
+    type: Mapped[entities.TransactionType] = mapped_column(
+        sa.Enum(entities.TransactionType, name="type"), nullable=False
+    )
     credit: Mapped[Decimal] = mapped_column(sa.Numeric(precision=8, scale=3), nullable=False)
     debit: Mapped[Decimal] = mapped_column(sa.Numeric(precision=8, scale=3), nullable=False)
     description: Mapped[str] = mapped_column(sa.String(length=256), nullable=False)
@@ -120,7 +130,7 @@ class TransactionORM(Base):
             public_id=self.public_id,
             worker=self.worker.to_domain(),
             billing_cycle=self.billing_cycle.to_domain(),
-            type=entities.TransactionType(str(self.type)),
+            type=self.type,
             credit=entities.Money(self.credit),
             debit=entities.Money(self.debit),
             description=self.description,
@@ -131,17 +141,13 @@ class TransactionORM(Base):
 class WorkerORM(Base):
     __tablename__ = "workers"
 
-    class Role(StrEnum):
-        ADMINISTATOR = "administrator"
-        ACCOUNTANT = "accountant"
-        DEVELOPER = "developer"
-        MANAGER = "manager"
-
     id: Mapped[int] = mapped_column(primary_key=True)
     public_id: Mapped[str] = mapped_column(sa.String(length=64), unique=True, nullable=False)
     balance: Mapped[Decimal] = mapped_column(sa.Numeric(precision=8, scale=3), nullable=False)
     email: Mapped[str] = mapped_column(sa.String(length=64), nullable=False)
-    role: Mapped[Role] = mapped_column(sa.Enum(Role, name="role"), nullable=False)
+    role: Mapped[entities.WorkerRole] = mapped_column(
+        sa.Enum(entities.WorkerRole, name="role"), nullable=False
+    )
     created_at: Mapped[datetime] = mapped_column(sa.DateTime(timezone=True), nullable=False)
 
     transactions: Mapped[list["TransactionORM"]] = relationship(back_populates="worker")
@@ -153,10 +159,10 @@ class WorkerORM(Base):
             public_id=self.public_id,
             balance=entities.Money(self.balance),
             email=self.email,
-            role=entities.WorkerRole(str(self.role)),
+            role=self.role,
         )
 
     def sync_with_domain(self, worker: entities.Worker) -> None:
         self.balance = worker.balance
         self.email = worker.email
-        self.role = self.Role(str(worker.role))
+        self.role = worker.role

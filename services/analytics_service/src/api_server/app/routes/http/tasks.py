@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, Query, status
@@ -32,7 +32,7 @@ async def get_most_expensive_task(
     if worker.role.lower() != "administrator":
         return schema.response.PermissionErrorResponse()
 
-    end_date = datetime.utcnow()
+    end_date = datetime.now(UTC)
     start_date = end_date - timedelta(days=within_days)
     most_expensive_task = await dependency.get_most_expensive_task.execute(start_date, end_date)
 

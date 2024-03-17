@@ -5,7 +5,7 @@ from .money import Money
 
 
 @dataclass
-class Task:
+class TaskCost:
     id: str
     public_id: str
     assign_fee: Money
@@ -18,3 +18,10 @@ class Task:
     @staticmethod
     def calculate_completion_award() -> Money:
         return Money(random.randint(20, 40))
+
+
+@dataclass
+class Task:
+    id: str
+    public_id: str
+    cost: TaskCost

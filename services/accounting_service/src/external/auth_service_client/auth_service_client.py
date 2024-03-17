@@ -11,7 +11,7 @@ class AuthServiceClient:
 
     async def get_worker_by_token(self, token: str) -> Worker:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=3)) as session:
-            async with session.post(
+            async with session.get(
                 f"{self._auth_service}/api/v1/token/worker", json={"token": token}
             ) as resp:
                 body = await resp.text()

@@ -11,4 +11,4 @@ class Task(BaseModel):
 
     @classmethod
     def from_domain(cls, task: entities.Task) -> Self:
-        return cls(id=task.public_id, cost=str(task.cost))
+        return cls(id=task.public_id, cost=str(task.cost.completion_award))

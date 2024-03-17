@@ -5,13 +5,13 @@ from domain import entities
 
 class TransactionsRepository(abc.ABC):
     @abc.abstractmethod
-    async def apply_enroll(
+    async def apply_deposit(
         self, worker_public_id: str, value: entities.Money, description: str
     ) -> entities.Transaction:
         pass
 
     @abc.abstractmethod
-    async def apply_withdraw(
+    async def apply_withdrawal(
         self, worker_public_id: str, value: entities.Money, description: str
     ) -> entities.Transaction:
         pass
@@ -25,5 +25,5 @@ class TransactionsRepository(abc.ABC):
         pass
 
     @abc.abstractmethod
-    async def get_daily_enroll_and_withdraw_difference(self) -> entities.Money:
+    async def get_daily_deposit_and_withdrawal_difference(self) -> entities.Money:
         pass

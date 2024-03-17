@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 import sqlalchemy
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -43,12 +43,15 @@ class PostgresTransactionsRepository(TransactionsRepository):
                 models.worker.table.c.public_id == worker_public_id
             )
             select_worker_by_public_id_result = await conn.execute(select_worker_by_public_id)
-            worker = models.worker.row_to_domain(select_worker_by_public_id_result.first())
+            worker = models.worker.build_domain_from_model(select_worker_by_public_id_result.first())
 
-            if type is entities.TransactionType.INCOME:
-                worker.balance += value
-            else:
-                worker.balance -= value
+            match type:
+                case entities.TransactionType.WITHDRAWAL:
+                    worker.balance += value
+                case entities.TransactionType.DEPOSIT:
+                    worker.balance -= value
+                case entities.TransactionType.PAYMENT:
+                    worker.balance -= value
 
             update_worker_balance = (
                 models.worker.table.update()
@@ -60,5 +63,25 @@ class PostgresTransactionsRepository(TransactionsRepository):
             await conn.commit()
 
     async def get_todays_managers_profit(self) -> entities.Money:
-        # TODO: just stub for now
-        return entities.Money(0)
+        async with self._engine.connect() as conn:
+            select_credit_sum = sqlalchemy.select(
+                sqlalchemy.func.sum(models.transaction.table.c.value).filter(
+                    sqlalchemy.cast(models.transaction.table.c.created_at, sqlalchemy.Date) == date.today(),
+                    models.transaction.table.c.type == entities.TransactionType.WITHDRAWAL,
+                )
+            )
+
+            select_debit_sum = sqlalchemy.select(
+                sqlalchemy.func.sum(models.transaction.table.c.value).filter(
+                    sqlalchemy.cast(models.transaction.table.c.created_at, sqlalchemy.Date) == date.today(),
+                    models.transaction.table.c.type == entities.TransactionType.DEPOSIT,
+                )
+            )
+
+            credit_sum_result = await conn.execute(select_credit_sum)
+            debit_sum_result = await conn.execute(select_debit_sum)
+
+            credit_sum = credit_sum_result.first()[0]
+            debit_sum = debit_sum_result.first()[0]
+
+        return entities.Money(debit_sum) - entities.Money(credit_sum)

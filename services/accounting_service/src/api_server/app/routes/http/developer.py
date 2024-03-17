@@ -34,7 +34,7 @@ async def get_balance(
         return schema.response.UnauthorizedErrorResponse()
 
     if worker.role != "developer":
-        raise schema.response.PermissionErrorResponse()
+        return schema.response.PermissionErrorResponse()
 
     balance = await dependency.get_worker_balance.execute(worker.public_id)
 
@@ -59,7 +59,7 @@ async def get_financial_report(
         return schema.response.UnauthorizedErrorResponse()
 
     if worker.role != "developer":
-        raise schema.response.PermissionErrorResponse()
+        return schema.response.PermissionErrorResponse()
 
     transactions = await dependency.get_worker_transactions.execute(worker.public_id)
 

@@ -2,46 +2,57 @@ from domain import entities
 from domain.interfaces import MessageBroker
 
 from ..common import broker
-from . import models
+from .event_builder import EventBuilder
 
 
 class KafkaMessageBroker(MessageBroker):
-    def __init__(self) -> None:
-        self._transaction_business_events_topic = "transactions"
-        self._payments_business_events_topic = "payment-lifecycle"
-        self._task_cud_events_topic = "task-stream"
-        self._transaction_cud_events_topic = "transaction-stream"
+    def __init__(self, event_builder: EventBuilder) -> None:
+        self._event_builder = event_builder
 
-    async def produce_task_costs_set(self, task: entities.Task) -> None:
-        await broker.publish(
-            models.TaskCostsSetEvent.from_domain(task),
-            topic=self._task_cud_events_topic,
-        )
+        self._deposit_transaction_business_events_topic = "transactions-deposit"
+        self._withdrawal_transaction_business_events_topic = "transactions-withdrawal"
+        self._payment_transaction_business_events_topic = "transactions-payment"
+        self._payments_business_events_topic = "payments"
+        self._task_cost_cud_events_topic = "task-cost-stream"
 
-    async def produce_transactions_applied(self, transactions: list[entities.Transaction]) -> None:
-        await broker.publish_batch(
-            *[models.TransactionAppliedEvent.from_domain(transaction) for transaction in transactions],
-            topic=self._transaction_business_events_topic,
-        )
+    async def produce_task_cost_created(self, task: entities.Task) -> None:
+        task_cost_created_event = self._event_builder.build_task_cost_created_event(task)
 
-        await broker.publish_batch(
-            *[models.TransactionCreatedEvent.from_domain(transaction) for transaction in transactions],
-            topic=self._transaction_cud_events_topic,
-        )
+        await broker.publish(task_cost_created_event, topic=self._task_cost_cud_events_topic)
 
-    async def produce_payments_created(self, payments: list[entities.Payment]) -> None:
-        await broker.publish_batch(
-            *[models.PaymentCreatedEvent.from_domain(payment) for payment in payments],
-            topic=self._payments_business_events_topic,
-        )
+    async def produce_deposit_transactions_applied(self, transactions: list[entities.Transaction]) -> None:
+        enroll_transaction_applied_events = [
+            self._event_builder.build_enroll_transaction_applied_event(transaction)
+            for transaction in transactions
+        ]
 
         await broker.publish_batch(
-            *[models.TransactionCreatedEvent.from_domain(payment.transaction) for payment in payments],
-            topic=self._transaction_cud_events_topic,
+            *enroll_transaction_applied_events, topic=self._deposit_transaction_business_events_topic
         )
 
-    async def produce_payment_processed(self, payment: entities.Payment) -> None:
-        await broker.publish(
-            models.PaymentProcessedEvent.from_domain(payment),
-            topic=self._payments_business_events_topic,
+    async def produce_withdrawal_transactions_applied(
+        self, transactions: list[entities.Transaction]
+    ) -> None:
+        withdraw_transaction_applied_events = [
+            self._event_builder.build_withdraw_transaction_applied_event(transaction)
+            for transaction in transactions
+        ]
+
+        await broker.publish_batch(
+            *withdraw_transaction_applied_events, topic=self._withdrawal_transaction_business_events_topic
         )
+
+    async def produce_payment_transactions_applied(self, transactions: list[entities.Transaction]) -> None:
+        payment_transaction_applied_events = [
+            self._event_builder.build_payment_transaction_applied_event(transaction)
+            for transaction in transactions
+        ]
+
+        await broker.publish_batch(
+            *payment_transaction_applied_events, topic=self._payment_transaction_business_events_topic
+        )
+
+    async def produce_payout_done(self, payment: entities.Payment) -> None:
+        payout_done_event = self._event_builder.build_payout_done_event(payment)
+
+        await broker.publish(payout_done_event, topic=self._payments_business_events_topic)

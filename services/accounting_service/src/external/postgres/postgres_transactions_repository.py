@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, date, datetime
 
 import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -24,7 +24,7 @@ class PostgresTransactionsRepository(interfaces.TransactionsRepository):
         self._engine = create_async_engine(url)
         self._session_factory = async_sessionmaker(self._engine)
 
-    async def apply_enroll(
+    async def apply_deposit(
         self, worker_public_id: str, value: entities.Money, description: str
     ) -> entities.Transaction:
         async with self._session_factory() as session:
@@ -41,24 +41,24 @@ class PostgresTransactionsRepository(interfaces.TransactionsRepository):
                         "public_id": str(uuid.uuid4()),
                         "worker_id": int(worker.id),
                         "billing_cycle_id": int(billing_cycle.id),
-                        "type": str(entities.TransactionType.ENROLL),
+                        "type": str(entities.TransactionType.DEPOSIT),
                         "credit": entities.Money(0).to_decimal(),
                         "debit": value.to_decimal(),
                         "description": description,
-                        "created_at": datetime.utcnow(),
+                        "created_at": datetime.now(UTC),
                     }
                 ],
             )
             transaction = new_transaction_model.to_domain()
 
-            worker.balance += transaction.debit
+            worker.balance -= transaction.debit
             worker_model.sync_with_domain(worker)
 
             await session.commit()
 
         return transaction
 
-    async def apply_withdraw(
+    async def apply_withdrawal(
         self, worker_public_id: str, value: entities.Money, description: str
     ) -> entities.Transaction:
         async with self._session_factory() as session:
@@ -75,17 +75,17 @@ class PostgresTransactionsRepository(interfaces.TransactionsRepository):
                         "public_id": str(uuid.uuid4()),
                         "worker_id": int(worker.id),
                         "billing_cycle_id": int(billing_cycle.id),
-                        "type": str(entities.TransactionType.WITHDRAW),
+                        "type": str(entities.TransactionType.WITHDRAWAL),
                         "credit": value.to_decimal(),
                         "debit": entities.Money(0).to_decimal(),
                         "description": description,
-                        "created_at": datetime.utcnow(),
+                        "created_at": datetime.now(UTC),
                     }
                 ],
             )
             transaction = new_transaction_model.to_domain()
 
-            worker.balance -= transaction.credit
+            worker.balance += transaction.credit
             worker_model.sync_with_domain(worker)
 
             await session.commit()
@@ -118,7 +118,7 @@ class PostgresTransactionsRepository(interfaces.TransactionsRepository):
                         "worker_id": int(worker.id),
                         "payment_id": None,
                         "status": str(entities.BillingCycleStatus.OPEN),
-                        "started_at": datetime.utcnow(),
+                        "started_at": datetime.now(UTC),
                         "ended_at": None,
                     }
                 ],
@@ -132,9 +132,10 @@ class PostgresTransactionsRepository(interfaces.TransactionsRepository):
         async with self._session_factory() as session:
             select_transactions_for_worker = (
                 sqlalchemy.select(models.TransactionORM)
+                .join(models.WorkerORM)
+                .where(models.WorkerORM.public_id == worker_public_id)
                 .options(joinedload(models.TransactionORM.worker))
                 .options(joinedload(models.TransactionORM.billing_cycle))
-                .filter(models.WorkerORM.public_id == worker_public_id)
             )
 
             select_transactions_for_worker_result = await session.execute(select_transactions_for_worker)
@@ -143,9 +144,18 @@ class PostgresTransactionsRepository(interfaces.TransactionsRepository):
 
             return [transaction_model.to_domain() for transaction_model in transactions_models]
 
-    async def get_daily_enroll_and_withdraw_difference(self) -> entities.Money:
-        # TODO: just stub for now
-        return entities.Money(0)
+    async def get_daily_deposit_and_withdrawal_difference(self) -> entities.Money:
+        async with self._session_factory() as session:
+            select_profit_sum = sqlalchemy.select(
+                sqlalchemy.func.sum(models.TransactionORM.debit - models.TransactionORM.credit).filter(
+                    sqlalchemy.cast(models.TransactionORM.created_at, sqlalchemy.Date) == date.today(),
+                    models.TransactionORM.type != entities.TransactionType.PAYMENT,
+                )
+            )
+
+            debit_profit_result = await session.execute(select_profit_sum)
+
+            return entities.Money(debit_profit_result.scalar())
 
     async def _get_open_billing_cycle_for_worker(
         self, session: AsyncSession, worker_public_id: str
@@ -157,7 +167,7 @@ class PostgresTransactionsRepository(interfaces.TransactionsRepository):
             .filter(
                 sqlalchemy.and_(
                     models.WorkerORM.public_id == worker_public_id,
-                    models.BillingCycleORM.status == str(models.BillingCycleORM.Status.OPEN),
+                    models.BillingCycleORM.status == entities.BillingCycleStatus.OPEN,
                 )
             )
         )
@@ -186,7 +196,7 @@ class PostgresTransactionsRepository(interfaces.TransactionsRepository):
                     "credit": entities.Money(0).to_decimal(),
                     "debit": worker.balance.to_decimal(),
                     "description": description,
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(UTC),
                 }
             ],
         )
@@ -200,9 +210,11 @@ class PostgresTransactionsRepository(interfaces.TransactionsRepository):
                     "status": str(entities.PaymentStatus.CREATED),
                     "transaction_id": int(transaction.id),
                     "billing_cycle_id": int(billing_cycle.id),
-                    "created_at": datetime.utcnow(),
+                    "created_at": datetime.now(UTC),
                 }
             ],
         )
+
+        new_payment_model.transaction  # TODO: joined load
 
         return new_payment_model
