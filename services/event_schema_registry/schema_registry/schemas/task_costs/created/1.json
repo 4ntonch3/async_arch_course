@@ -1,0 +1,46 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+
+    "title": "TaskCost.Created.v1",
+    "description": "JSON schema for CUD task's cost event (version 1)",
+
+    "definitions": {
+      "event_payload": {
+        "type": "object",
+        "properties": {
+          "public_id": { "type": "string" },
+          "task_public_id": { "type": "string" },
+          "assign_fee": { "type": "string" },
+          "completion_award": { "type": "string" }
+        },
+        "required": [
+          "public_id",
+          "task_public_id",
+          "assign_fee",
+          "completion_award"
+        ]
+      }
+    },
+
+    "type": "object",
+
+    "properties": {
+      "event_id":      { "type": "string" },
+      "event_version": { "enum": ["1"] },
+      "event_name":    { "enum": ["TaskCostCreated"] },
+      "event_time":    { "type": "string" },
+      "producer":      { "type": "string" },
+
+      "payload": { "$ref": "#/definitions/event_payload" }
+    },
+
+    "required": [
+      "event_id",
+      "event_version",
+      "event_name",
+      "event_time",
+      "producer",
+      "payload"
+    ]
+}
+

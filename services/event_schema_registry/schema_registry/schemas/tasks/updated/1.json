@@ -1,0 +1,62 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+
+    "title": "Tasks.Updated.v1",
+    "description": "JSON schema for CUD task event (version 1)",
+
+    "definitions": {
+      "event_payload": {
+        "type": "object",
+        "properties": {
+          "public_id": { "type": "string" },
+          "assignee": { "$ref": "#/definitions/worker" },
+          "description": { "type": "string" },
+          "jira_id": { "type": "string" },
+          "status": { "enum": ["open", "completed"] }
+        },
+        "required": [
+          "public_id",
+          "assignee",
+          "description",
+          "status"
+        ]
+      },
+      "worker": {
+        "type": "object",
+        "properties": {
+          "public_id": { "type": "string" },
+          "role": {
+            "enum": [
+              "accountant",
+              "administrator",
+              "developer",
+              "manager"
+            ]
+          }
+        },
+        "required": [ "public_id", "role" ]
+      }
+    },
+
+    "type": "object",
+
+    "properties": {
+      "event_id":      { "type": "string" },
+      "event_version": { "enum": ["1"] },
+      "event_name":    { "enum": ["TaskUpdated"] },
+      "event_time":    { "type": "string" },
+      "producer":      { "type": "string" },
+
+      "payload": { "$ref": "#/definitions/event_payload" }
+    },
+
+    "required": [
+      "event_id",
+      "event_version",
+      "event_name",
+      "event_time",
+      "producer",
+      "payload"
+    ]
+}
+
