@@ -1,0 +1,49 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+
+    "title": "Transactions.WithdrawalApplied.v1",
+    "description": "JSON schema for BE transaction event (version 1)",
+
+    "definitions": {
+      "event_payload": {
+        "type": "object",
+        "properties": {
+          "public_id": { "type": "string" },
+          "worker_public_id": { "type": "string" },
+          "credit": { "type": "string" },
+          "debit": { "type": "string" },
+          "description": { "type": "string" },
+          "created_at": { "type": "string" }
+        },
+        "required": [
+          "public_id",
+          "worker_public_id",
+          "credit",
+          "debit",
+          "description",
+          "created_at"
+        ]
+      }
+    },
+
+    "type": "object",
+
+    "properties": {
+      "event_id":      { "type": "string" },
+      "event_version": { "enum": ["1"] },
+      "event_name":    { "enum": ["WithdrawalTransactionApplied"] },
+      "event_time":    { "type": "string" },
+      "producer":      { "type": "string" },
+
+      "payload": { "$ref": "#/definitions/event_payload" }
+    },
+
+    "required": [
+      "event_id",
+      "event_version",
+      "event_name",
+      "event_time",
+      "producer",
+      "payload"
+    ]
+}
